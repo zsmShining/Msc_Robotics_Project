@@ -1,7 +1,7 @@
 clc;clear;close all;
-agt1 = agentLeader(1,"leader",[0,0,pi/2,1,0],[0,10]);
+agt1 = agent(1,"leader",[0,0,pi/2,1,0],[0,10]);
 obs = obstacle(2,[0,5,0,0,0]);
-agt2 = agentLeader(3,"leader",[0,10,-pi/2,1,0],[0,0]);
+agt2 = agent(3,"leader",[0,10,-pi/2,1,0],[0,0]);
 list = {agt1,agt2,obs};
 colorList = ["r","b","g"];
 newList = list;

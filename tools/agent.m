@@ -1,13 +1,14 @@
-classdef agentLeader < object_template
+classdef agent < object_template
     properties
         goal;
-        goalMargin;
+        role;
     end
     methods
-        function [this] = agentLeader(id,state,goal)            
-            this@object_template(id,"leader",state);
+        function [this] = agent(id,role,state,goal)            
+            this@object_template(id,"agent",state);
             this.radius = Object_lib.agentRadius;
             this.goal = goal;
+            this.role = role;
         end
     end
 %%   -----------------Behavior Library -----------------------
@@ -20,7 +21,7 @@ classdef agentLeader < object_template
         end
         function [atGoal] =  checkIsAtGoal(this)
             atGoal = false;
-            if norm(this.position - this.goal) <= this.goalMargin
+            if norm(this.position - this.goal) < Object_lib.agentGoalMargin
                 atGoal = true;
             end
         end
@@ -28,6 +29,7 @@ classdef agentLeader < object_template
             velocity = this.calGoalVector * Object_lib.agentMaxLinearSpeed;
         end
     end
+    
 %% +++++++++++++++++++Avoid Obstacle & Agent & All ++++++++++++++++++++++++++++
     methods
         function [velocity] = calAvoidObstacle(this,objList)
@@ -35,29 +37,30 @@ classdef agentLeader < object_template
             if isempty(obstacleList)
                 velocity = Object_lib.calVelocity(this);
             else
-                desiredVelocity = this.velocity;
-                VOset = VO_lib.constructVOset(obstacleList);
+                
+                desiredVelocity = Object_lib.calVelocity(this);
+                VOset = VO_lib.constructVOset(this,obstacleList,"VO");
                 velocity = VO_lib.applyClearPath(desiredVelocity,VOset);
             end            
         end
         function [velocity] = calAvoidAgent(this,objList)
-            agentList = Object_lib.getNeighbors("agent",objList);
+            agentList = Object_lib.getNeighbors("agent",this,objList);
             if isempty(agentList)
-                velocity = [0,0];
+                velocity = Object_lib.calVelocity(this);
             else
                 desiredVelocity = Object_lib.calVelocity(this);
-                VOset = VO_lib.constructVOset(agentList);
+                VOset = VO_lib.constructVOset(this,agentList,"HRVO");
                 velocity = VO_lib.applyClearPath(desiredVelocity,VOset);
             end             
         end
         function [velocity] = calAvoidCollision(this,objList)
-            neighborList = this.getNeighbors("all",objList);
+            neighborList = Object_lib.getNeighbors("all",this,objList);
             if isempty(neighborList)               
                 [velocity] = Object_lib.calVelocity(this);
             else
                 desiredVelocity = Object_lib.calVelocity(this);
-                VOset = this.constructVOset(neighborList);
-                [velocity] = this.applyClearPath(desiredVelocity,VOset);
+                VOset = VO_lib.constructVOset(this,neighborList,"HRVO");
+                [velocity] = VO_lib.applyClearPath(desiredVelocity,VOset);
             end
             
         end

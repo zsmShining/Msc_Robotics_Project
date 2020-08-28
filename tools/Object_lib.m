@@ -1,13 +1,14 @@
 classdef Object_lib
+    
 properties(Constant)
     agentRadius = 1;
     agentMaxLinearSpeed = 4;
     agentMaxAngularSpeed = 0.5;
+    agentGoalMargin = 0.5;
+    
     safeAgentDis = 8;
-    
-    
     obstacleRadius = 1;
-    safeObstacleDis = 8;
+    safeObstacleDis = 5;
     
     VO_VISION_ANGLE = pi;
 end
@@ -19,7 +20,7 @@ function [neighborList] = getNeighbors(type,agt,objList)
        neighborList = [Object_lib.checkObjectInRange('agent',agt,objList), ...
                        Object_lib.checkObjectInRange('obstacle',agt,objList)];
     elseif type == "agent" || type == "obstacle"
-       neighborList = checkObjectInRange(type,agt,objList);
+       neighborList = Object_lib.checkObjectInRange(type,agt,objList);
     else
         error("getNeighbors:wrong type of checking Agent in Range");
     end
@@ -36,20 +37,20 @@ function [objInRangeList] = checkObjectInRange(rangeType,agt,objList)
     end
     vision = Object_lib.VO_VISION_ANGLE;
 
-    objInRangeList = [];
+    objInRangeList = {};
     for nObj = 1:length(objList)
-        other_obj = objList(nObj);
+        other_obj = objList{nObj};
         if agt.id ~= other_obj.id && other_obj.type == rangeType
             isWithinNeighbourhood = Object_lib.checkIsInVisualRange(agt,other_obj,vision,range); 
             if isWithinNeighbourhood
-                objInRangeList = [objInRangeList,other_obj];
+                objInRangeList{end+1} = other_obj;
             end
         end
     end        
 end
 
 function [isIn] = checkIsInVisualRange(agt,other_obj,vision,visualRange)
-    dir = agt.direction;
+    dir = agt.orientation;
     pos = agt.position;
     obs_pos = other_obj.position;
     obs_rad = other_obj.radius;

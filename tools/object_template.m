@@ -10,7 +10,7 @@ classdef object_template
     end
 
     methods
-        function this=object_lib(id,type,state)
+        function [this]=object_template(id,type,state)
             this.id = id;
             this.type = type;
             this.position = state(1:2);
@@ -44,8 +44,13 @@ classdef object_template
             end
         end
         
-        
-        
+        function [this] = nextStep(this,dt)
+            theta = this.orientation;
+            posDiff = this.linearSpeed*[cos(theta),sin(theta)]*dt;
+            this.position = this.position + posDiff;
+            this.orientation = theta + this.angularSpeed * dt;
+        end
+                
     end
 
 

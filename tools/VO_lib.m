@@ -16,15 +16,18 @@ function [VO] = constructVO(obj_a,obj_b,type,tau)
     end   
 end
 function [VOset] = constructVOset(agt,agtNeighbor,type)
-    if agt.type ~= "leader" || agt.type ~= "follower"
+    VOset = [];
+%    if agt.type ~= "leader" || agt.type ~= "follower"
+    if agt.type ~= "agent"
         error("only agent needs to construct a VO set to avoid obstacle")
     end
-    for other_obj = agtNeighbor(1:end)
+    for otherIndex = 1:length(agtNeighbor)
+        other_obj = agtNeighbor{otherIndex}
         if other_obj.type == "obstacle"
             %disp("obstacle")
-            VO = constructVO(this,other_obj,"VO");
+            VO = VO_lib.constructVO(agt,other_obj,"VO");
         elseif other_obj.type == "agent"
-            VO = constructVO(this,other_obj,type);
+            VO = VO_lib.constructVO(agt,other_obj,type);
         end
         VOset = [VOset,VO];
     end
@@ -36,8 +39,8 @@ function [VO] = defineVO(obj_a,obj_b,tau)
         tau = 0;
     end
     %% paramters needed for computation
-    pos_a = [obj_a.position';0];vel_a = [obj_a.velocity';0];
-    pos_b = [obj_b.position';0];vel_b = [obj_b.velocity';0];
+    pos_a = [obj_a.position';0];vel_a = [Object_lib.calVelocity(obj_a)';0];
+    pos_b = [obj_b.position';0];vel_b = [Object_lib.calVelocity(obj_b)';0];
     rad_a = obj_a.radius;rad_b = obj_b.radius;
 
     rad_config = rad_a + rad_b;
@@ -102,7 +105,7 @@ function [RVO] = defineRVO(obj_a,obj_b,tau)
         tau = 0;
     end
         VO = VO_lib.defineVO(obj_a,obj_b,tau);
-        VO.apex = (obj_a.velocity+obj_b.velocity)/2;
+        VO.apex = (Object_lib.calVelocity(obj_a)+Object_lib.calVelocity(obj_b))/2;
         RVO = VO;
 end
 

@@ -25,10 +25,14 @@ classdef object_template
         
         function [varVal] = get(this,varName)
             varName = string(varName);
-            if varName ~= "state"
-                varVal = this.(varName);
-            else
+            if varName == "state"
                 varVal = [this.position,this.orientation,this.linearSpeed,this.angularSpeed];
+            elseif varName == "x" 
+                varVal = this.position(1);
+            elseif varName == "y"
+                varVal = this.position(2);
+            else
+                varVal = this.(varName);
             end
         end        
         
@@ -46,17 +50,20 @@ classdef object_template
         
         function [this] = nextStep(this,dt)
             theta = this.orientation;
+            this.orientation = theta + this.angularSpeed * dt;
             posDiff = this.linearSpeed*[cos(theta),sin(theta)]*dt;
             this.position = this.position + posDiff;
-            this.orientation = theta + this.angularSpeed * dt;
+            
+        end
+        function [rotMat] = getLocalFrame(this)
+            theta = this.orientation;
+            rotMat = [cos(theta),sin(theta),0;...
+                      -sin(theta),cos(theta),0; ...
+                      0         ,          0,1];
+        
         end
                 
     end
 
-
-
-
-
-    
-    
+  
 end

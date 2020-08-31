@@ -53,6 +53,11 @@ classdef Tool_lib
             info(3) = obj.orientation;
             info(4) = obj.linearSpeed;
             info(5) = obj.radius;
+            if obj.type == "agent" && obj.role == "virtual"
+                info(6) = true;
+            else
+                info(6) = false;
+            end
         end
         
         function plotObject(info,color)
@@ -60,17 +65,34 @@ classdef Tool_lib
             orientation = info(3);
             linearSpeed = info(4);
             radius = info(5);
+            virtual = info(6);
             hold on
-            Tool_lib.plot_circle(position,radius,color);
+            if ~virtual
+                %disp("++++")
+                Tool_lib.fill_circle(position,radius,color);
+            else
+                %disp("----")
+                color = char(string(color)+"--");
+                Tool_lib.plot_circle(position,radius,color);
+            end
             if linearSpeed ~= 0
                 vector = linearSpeed*[cos(orientation),sin(orientation)];
                 Tool_lib.plot_arrow(position,position+vector,0.8,color);
+            else
+                %disp("lijlin")
+                vector = radius*[cos(orientation),sin(orientation)];
+                Tool_lib.plot_arrow(position,position+vector,0.8,color);
             end
+        end
+        function fill_circle(position,radius,color)
+            hold on
+            objCir = Tool_lib.createCircle(position,radius);
+            patch(objCir(:,1),objCir(:,2),color,"EdgeColor","none","FaceAlpha",0.3);
         end
         function plot_circle(position,radius,color)
             hold on
             objCir = Tool_lib.createCircle(position,radius);
-            patch(objCir(:,1),objCir(:,2),color,"EdgeColor","none","FaceAlpha",0.3);
+            plot(objCir(:,1),objCir(:,2),color);
         end
         function plot_arrow(pos1,pos2,scale,color)
             deltaP = pos2-pos1;

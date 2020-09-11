@@ -1,22 +1,22 @@
 classdef Object_lib
     
 properties(Constant)
-    agentRadius = 1;
+    agentRadius = 0.5;
+    agentNomialLinearSpeed = 2;
     agentMaxLinearSpeed = 4;
+    agentNomialAngularSpeed = 0;
     agentMaxAngularSpeed = 1;
     agentGoalMargin = 0.5;
     
-    safeAgentDis = 8;
+    safeAgentDis = 3;%8
+    safeObstacleDis = 3;%5
     obstacleRadius = 1;
-    safeObstacleDis = 5;
     
     VO_VISION_ANGLE = pi;
     
     
     Formation_Matainnence_Error = [0.1,0.1,0.1];%.m/.m/.rad/
-    DifferentialModel_R = 1;
-    DifferentialModel_L = 1;
-    Diff_MaxWheelSpeed = 5;
+
     
     
 end
@@ -133,6 +133,9 @@ methods(Static)
             f1 = a1;
         end
 
+    end
+    function  [ang]= convertBoundAng(ang)
+        ang = atan2(sin(ang),cos(ang));
     end
     
     function [f2]=avoidObstacle(agt,objList)

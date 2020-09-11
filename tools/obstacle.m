@@ -3,9 +3,9 @@ properties
 end
 
 methods
-    function [this] = obstacle(id,state)
+    function [this] = obstacle(id,state,radius)
         this@object_template(id,"obstacle",state);
-        this.radius = Object_lib.obstacleRadius;
+        this.radius = radius;
     end
 end
 

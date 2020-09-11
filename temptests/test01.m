@@ -1,12 +1,12 @@
 clc;clear;close all;
 agt1 = agent(1,"leader",[0,0,pi/2,1,0],[0,10]);
-obs = obstacle(2,[0,5,0,0,0]);
+obs = obstacle(2,[0,5,0,0,0],2);
 agt2 = agent(3,"leader",[0,10,-pi/2,1,0],[0,0]);
 list = {agt1,agt2,obs};
 colorList = ["r","b","g"];
 newList = list;
 
-sim_end = 100;
+sim_end = 200;
 for t = 1:sim_end
 Tool_lib.plotScene(list,colorList)
 for i= 1:length(list)
@@ -17,7 +17,7 @@ for i= 1:length(list)
             [linearSpeed,theta] = Object_lib.convertVelocity(velocity);
             obj = obj.set("linearSpeed",linearSpeed);
             obj = obj.set("orientation",theta);
-            velocity = obj.calAvoidCollision(list);
+            velocity = obj.calAvoidCollision(list,velocity);
             [linearSpeed,theta] = Object_lib.convertVelocity(velocity);
             obj = obj.set("linearSpeed",linearSpeed);
             obj = obj.set("orientation",theta);            

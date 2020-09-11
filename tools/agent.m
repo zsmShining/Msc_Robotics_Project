@@ -5,7 +5,11 @@ classdef agent < object_template
         trigered = struct("on",false,"type","","initialError",[]);
     end
     methods
-        function [this] = agent(id,role,state,goal)            
+        function [this] = agent(id,role,state,goal)
+            if length(state)==3
+                state(4) = Object_lib.agentNomialLinearSpeed;
+                state(5) = Object_lib.agentNomialAngularSpeed;
+            end
             this@object_template(id,"agent",state);
             this.radius = Object_lib.agentRadius;
             this.goal = goal;
@@ -13,6 +17,8 @@ classdef agent < object_template
                 if id >= 0
                     error("wrong id for virtual,must be negative");
                 end
+            elseif role == "follower"
+                this.goal = [];
             end
             this.role = role;
         end
@@ -37,17 +43,21 @@ end
 %% +++++++++++++++++++Move to Goal++++++++++++++++++++++++++++
     methods
         function [unitVector] = calGoalVector(this)
-            goalVector = this.goal - this.position;
-            unitVector = goalVector/norm(goalVector);
+            if this.checkIsAtGoal()
+                unitVector = [0,0];
+            else
+                goalVector = this.goal - this.position;
+                unitVector = goalVector/norm(goalVector);
+            end
         end
-        function [atGoal] =  checkIsAtGoal(this,dt)
+        function [atGoal] =  checkIsAtGoal(this)
             atGoal = false;
-            if norm(this.position - this.goal) < this.linearSpeed * dt;
+            if norm(this.position - this.goal) <= Object_lib.agentGoalMargin
                 atGoal = true;
             end
         end
         function [velocity] = calMovetoGoal(this)
-            velocity = this.calGoalVector * Object_lib.agentMaxLinearSpeed;
+            velocity = this.calGoalVector * Object_lib.agentNomialLinearSpeed;
         end
     end
     
@@ -80,13 +90,18 @@ end
         function [velocity] = calAvoidCollision(this,objList,desired_velocity)
             if nargin == 2
                 velocity = Object_lib.calVelocity(this);
+                disp("return calAvoid")
+                return;
             end
-            neighborList = Object_lib.getNeighbors("all",this,objList);
-            if isempty(neighborList)               
+            obstacleList = Object_lib.getNeighbors("obstacle",this,objList);
+            agentList = Object_lib.getNeighbors("agent",this,objList);
+            if isempty(obstacleList) && isempty(agentList)               
                 [velocity] = desired_velocity;
             else
                 desiredVelocity = Object_lib.calVelocity(this);
-                VOset = VO_lib.constructVOset(this,neighborList,"HRVO");
+                VOsetforObstacle = VO_lib.constructVOset(this,obstacleList,"VO");
+                VOsetforAgent = VO_lib.constructVOset(this,agentList,"HRVO");
+                VOset = [VOsetforObstacle,VOsetforAgent];
                 [velocity] = VO_lib.applyClearPath(desiredVelocity,VOset);
             end
             
@@ -101,6 +116,7 @@ end
                 folState = this.get("state");folState = folState(1:3);
                 rotMat = this.getLocalFrame();
                 Errorvf = rotMat * (virState-folState)';
+                Errorvf(3) = atan2(sin(Errorvf(3)),cos(Errorvf(3)));
             else
                 error("calError: no virtual Agent to reference")
             end
@@ -150,9 +166,11 @@ end
         end
         
         function [unitvector] = formationVector(this,virAgt)
+            if this.role ~= "follower"
+                error("only follower maintain the formatoin");
+            end
             vector = virAgt.position - this.position;
-            unitvector = vector/norm(vector);
-                
+            unitvector = vector/norm(vector);     
         end
         
     end

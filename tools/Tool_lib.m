@@ -29,19 +29,23 @@ classdef Tool_lib
     methods(Static)
         function plotScene(objList,colorList)
 
-            scale = 20;
+            scale = 40;
             ax = gca;
             ax.GridColor = [0.05 0.05 0.05];
             ax.XLim = scale*[-1,1];ax.XGrid = 'on';           
             ax.YLim = scale*[-1,1];ax.YGrid = 'on';
             ax.Box = 'on';
-            pbaspect([1 1 1])
+            pbaspect([1 1 1]);
             
             for i = 1:length(objList)
                 obj = objList{i};
+                if obj.type=="agent"&&obj.role == "leader"
+                    %Tool_lib.plotGoal(obj);
+                end
                 color = char(colorList(i));
                 info = Tool_lib.extractPlotInfo(obj);
                 Tool_lib.plotObject(info,color);
+                Tool_lib.plot_range(obj,color);
             end
 
 %             axis square
@@ -75,7 +79,7 @@ classdef Tool_lib
                 color = char(string(color)+"--");
                 Tool_lib.plot_circle(position,radius,color);
             end
-            if linearSpeed ~= 0
+            if linearSpeed ~= 0 && ~virtual
                 vector = linearSpeed*[cos(orientation),sin(orientation)];
                 Tool_lib.plot_arrow(position,position+vector,0.8,color);
             else
@@ -93,6 +97,22 @@ classdef Tool_lib
             hold on
             objCir = Tool_lib.createCircle(position,radius);
             plot(objCir(:,1),objCir(:,2),color);
+        end
+        function plot_range(obj,color)
+            hold on
+            if obj.type == "agent" && obj.role ~= "virtual"
+                dir = obj.orientation;
+                pos = obj.position;
+                rad = Object_lib.safeAgentDis;
+                vision = Object_lib.VO_VISION_ANGLE;
+                angulrRange = [dir-vision/2,dir+vision/2];
+                
+                arc = Tool_lib.createArc(angulrRange,pos,rad);
+                patch(arc(:,1),arc(:,2),color,"EdgeColor","none","FaceAlpha",0.1);
+            else
+                return;
+            end
+            
         end
         function plot_arrow(pos1,pos2,scale,color)
             deltaP = pos2-pos1;
@@ -113,10 +133,18 @@ classdef Tool_lib
         function windowSettings = getwindowsettings()
             screenSize = get(0,'ScreenSize');
             xPos = 0.2*screenSize(3);
-            yPos = 0.1*screenSize(4);
-            xSize = 0.6*screenSize(3);
+            yPos = 0.2*screenSize(4);
+            xSize = 0.8*screenSize(3);
             ySize = 0.8*screenSize(4);
             windowSettings = [xPos,yPos,xSize,ySize];
+        end
+        function plotGoal(obj)
+            if obj.role == "leader"
+                hold on 
+                scatter(obj.goal(1),obj.goal(2),"*");
+            else
+                return;
+            end
         end
 
     
